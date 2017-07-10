@@ -49,11 +49,9 @@
 #include "main.h"
 #include "stm32f4xx_hal.h"
 #include "usb_device.h"
-#include "usbd_cdc_if.h"
-
 
 /* USER CODE BEGIN Includes */
-
+#include "usbd_cdc_if.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -61,10 +59,13 @@ I2C_HandleTypeDef hi2c1;
 
 SPI_HandleTypeDef hspi5;
 
+TIM_HandleTypeDef htim3;
+
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+TIM_OC_InitTypeDef htimPwmPulse;
 
 /* USER CODE END PV */
 
@@ -74,10 +75,27 @@ static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_SPI5_Init(void);
+static void MX_TIM3_Init(void);
+
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+                                
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+void pwmChannelOneStart(void);
+void pwmChannelTwoStart(void);
+void pwmChannelThreeStart(void);
+void pwmChannelFourStart(void);
 
+void pwmChannelOneStop(void);
+void pwmChannelTwoStop(void);
+void pwmChannelThreeStop(void);
+void pwmChannelFourStop(void);
+
+void pwmChannelOneSet(uint16_t set);
+void pwmChannelTwoSet(uint16_t set);
+void pwmChannelThreeSet(uint16_t set);
+void pwmChannelFourSet(uint16_t set);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -105,7 +123,10 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  htimPwmPulse.OCMode = TIM_OCMODE_PWM1;
+  htimPwmPulse.Pulse = 500;
+  htimPwmPulse.OCPolarity = TIM_OCPOLARITY_HIGH;
+  htimPwmPulse.OCFastMode = TIM_OCFAST_DISABLE;
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -114,9 +135,9 @@ int main(void)
   MX_USB_DEVICE_Init();
   MX_I2C1_Init();
   MX_SPI5_Init();
+  MX_TIM3_Init();
 
   /* USER CODE BEGIN 2 */
-
 
   /* USER CODE END 2 */
 
@@ -134,9 +155,7 @@ int main(void)
 	  CDC_Receive_FS_User(buff, 10); //Receives from usb port every update
 
 	  HAL_Delay(1000);
-
-
-	  /* USER CODE END WHILE */
+  /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
 
@@ -240,6 +259,58 @@ static void MX_SPI5_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
+
+}
+
+/* TIM3 init function */
+static void MX_TIM3_Init(void)
+{
+
+  TIM_MasterConfigTypeDef sMasterConfig;
+  TIM_OC_InitTypeDef sConfigOC;
+
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 72;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 1000;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  HAL_TIM_MspPostInit(&htim3);
 
 }
 
@@ -392,6 +463,63 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void pwmChannelOneStart(void)
+{
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+}
+void pwmChannelTwoStart(void)
+{
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+}
+void pwmChannelThreeStart(void)
+{
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+}
+void pwmChannelFourStart(void)
+{
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
+}
+
+void pwmChannelOneStop(void)
+{
+	HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
+}
+void pwmChannelTwoStop(void)
+{
+	HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
+}
+void pwmChannelThreeStop(void)
+{
+	HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_3);
+}
+void pwmChannelFourStop(void)
+{
+	HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_4);
+}
+
+void pwmChannelOneSet(uint16_t set)
+{
+	htimPwmPulse.Pulse = set;
+	HAL_TIM_PWM_ConfigChannel(&htim3, &htimPwmPulse, TIM_CHANNEL_1);
+}
+void pwmChannelTwoSet(uint16_t set)
+{
+	htimPwmPulse.Pulse = set;
+	HAL_TIM_PWM_ConfigChannel(&htim3, &htimPwmPulse, TIM_CHANNEL_2);
+}
+void pwmChannelThreeSet(uint16_t set)
+{
+	htimPwmPulse.Pulse = set;
+	HAL_TIM_PWM_ConfigChannel(&htim3, &htimPwmPulse, TIM_CHANNEL_3);
+}
+void pwmChannelFourSet(uint16_t set)
+{
+	htimPwmPulse.Pulse = set;
+	HAL_TIM_PWM_ConfigChannel(&htim3, &htimPwmPulse, TIM_CHANNEL_4);
+}
+
+
+
 
 /* USER CODE END 4 */
 
