@@ -52,6 +52,7 @@
 
 /* USER CODE BEGIN Includes */
 #include "usbd_cdc_if.h"
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -100,6 +101,8 @@ void pwmChannelFourSet(uint16_t set);
 
 /* USER CODE BEGIN 0 */
 uint8_t buff[10];
+uint8_t str1[2];
+uint8_t retStrcmp;
 
 /* USER CODE END 0 */
 
@@ -148,13 +151,68 @@ int main(void)
 	  uint8_t testDataToSend[13] = {'H', 'E', 'L','L','O',' ','W','O','R','L','D', '\r'};
 
 
-	  CDC_Transmit_FS(testDataToSend, 12);
+	  //CDC_Transmit_FS(testDataToSend, 12);
 
 	  //uint8_t buff[6];
-
 	  CDC_Receive_FS_User(buff, 10); //Receives from usb port every update
 
-	  HAL_Delay(1000);
+	  strncpy (str1, buff, 3 );
+
+	  retStrcmp = strcmp(str1,"M1O");
+	  if(retStrcmp==0)
+	  {
+		  pwmChannelOneSet(500);
+		  pwmChannelOneStart();
+	  }
+
+	  retStrcmp = strcmp(str1,"M1F");
+	  if(retStrcmp==0)
+	  {
+		  pwmChannelOneStop();
+	  }
+
+	  retStrcmp = strcmp(str1,"M2O");
+	  if(retStrcmp==0)
+	  {
+		  pwmChannelTwoSet(500);
+		  pwmChannelTwoStart();
+	  }
+
+	  retStrcmp = strcmp(str1,"M2F");
+	  if(retStrcmp==0)
+	  {
+		  pwmChannelTwoStop();
+	  }
+
+	  retStrcmp = strcmp(str1,"M3O");
+	  if(retStrcmp==0)
+	  {
+		  pwmChannelThreeSet(500);
+		  pwmChannelThreeStart();
+	  }
+
+	  retStrcmp = strcmp(str1,"M3F");
+	  if(retStrcmp==0)
+	  {
+		  pwmChannelThreeStop();
+	  }
+
+	  retStrcmp = strcmp(str1,"M4O");
+	  if(retStrcmp==0)
+	  {
+		  pwmChannelFourSet(500);
+		  pwmChannelFourStart();
+	  }
+
+	  retStrcmp = strcmp(str1,"M4F");
+	  if(retStrcmp==0)
+	  {
+		  pwmChannelFourStop();
+	  }
+
+
+
+	  //HAL_Delay(1000);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
