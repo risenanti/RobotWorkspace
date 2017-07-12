@@ -105,13 +105,13 @@ int main(void)
   /* USER CODE BEGIN 3 */
 
 
-	  while(HAL_I2C_Master_Transmit(&hi2c1, (uint16_t)0x32, (uint8_t*)0x04, 7, 10000)!= HAL_OK)
+	  while(HAL_I2C_Master_Transmit(&hi2c1, (uint16_t)0x32, 0x06, 2, 10000)!= HAL_OK)
 	  { }
 
 HAL_Delay(1);
 	  /*##-3- Put I2C peripheral in reception process ############################*/
 	  /* Timeout is set to 10S */
-	  while(HAL_I2C_Master_Receive(&hi2c1, (uint16_t)0x32, (uint8_t *)stuff, 7, 10000) != HAL_OK)
+	  while(HAL_I2C_Master_Receive(&hi2c1, (uint16_t)0x32, (uint8_t *)&stuff, 1, 10000) != HAL_OK)
 	  { }
 	  HAL_Delay(1);
   }
