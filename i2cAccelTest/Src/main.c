@@ -62,7 +62,7 @@ static void MX_I2C1_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-uint8_t stuff = 0;
+uint8_t accelDataX[2];
 /* USER CODE END 0 */
 
 int main(void)
@@ -104,15 +104,23 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 
+	  // control reg1 (20h) - ODR: 25Hz, X,Y,Z Axis enabled.
+	  uint8_t ConfigReg1[2] = { 0x20, 0x37 }; /*0011 0000  0011 0111*/
 
-	  while(HAL_I2C_Master_Transmit(&hi2c1, (uint16_t)0x32, 0x06, 2, 10000)!= HAL_OK)
-	  { }
+	  while(HAL_I2C_Master_Transmit(&hi2c1, (uint16_t)0x32, (uint8_t*)&ConfigReg1[0], 2, 10000) != HAL_OK) { }
 
-HAL_Delay(1);
+	  //while(HAL_I2C_Master_Transmit(&hi2c1, (uint16_t)0x32, 0x06, 2, 10000)!= HAL_OK) { }
+
+	  #define REG_X_AXIS_L 0x28
+      #define REG_X_AXIS_H 0x29
+
+	  HAL_Delay(1);
 	  /*##-3- Put I2C peripheral in reception process ############################*/
 	  /* Timeout is set to 10S */
-	  while(HAL_I2C_Master_Receive(&hi2c1, (uint16_t)0x32, (uint8_t *)&stuff, 1, 10000) != HAL_OK)
-	  { }
+
+	  HAL_I2C_Mem_Read(&hi2c1, 0x32, REG_X_AXIS_L, I2C_MEMADD_SIZE_8BIT, &accelDataX[0], 1, 10000);
+	  HAL_I2C_Mem_Read(&hi2c1, 0x32, REG_X_AXIS_H, I2C_MEMADD_SIZE_8BIT, &accelDataX[1], 1, 10000);
+
 	  HAL_Delay(1);
   }
   /* USER CODE END 3 */
