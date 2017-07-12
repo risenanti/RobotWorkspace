@@ -68,6 +68,15 @@ UART_HandleTypeDef huart1;
 /* Private variables ---------------------------------------------------------*/
 TIM_OC_InitTypeDef htimPwmPulse;
 
+#define REG_X_AXIS_L 0x28
+#define REG_X_AXIS_H 0x29
+#define REG_Y_AXIS_L 0x2A
+#define REG_Y_AXIS_H 0x2B
+// control reg1 (20h) - ODR: 25Hz, X,Y,Z Axis enabled.
+uint8_t ConfigReg1[2] = { 0x20, 0x37 }; /*0011 0000  0011 0111*/
+uint8_t accelDataX[2];
+uint8_t accelDataY[2];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -141,7 +150,8 @@ int main(void)
   MX_TIM3_Init();
 
   /* USER CODE BEGIN 2 */
-
+  while(HAL_I2C_Master_Transmit(&hi2c1, (uint16_t)0x32, (uint8_t*)&ConfigReg1[0], 2, 10000) != HAL_OK) { }
+  HAL_Delay(1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -150,6 +160,11 @@ int main(void)
   {
 	  uint8_t testDataToSend[13] = {'H', 'E', 'L','L','O',' ','W','O','R','L','D', '\r'};
 
+	  HAL_I2C_Mem_Read(&hi2c1, 0x32, REG_X_AXIS_L, I2C_MEMADD_SIZE_8BIT, &accelDataX[0], 1, 10000);
+	  HAL_I2C_Mem_Read(&hi2c1, 0x32, REG_X_AXIS_H, I2C_MEMADD_SIZE_8BIT, &accelDataX[1], 1, 10000);
+
+	  HAL_I2C_Mem_Read(&hi2c1, 0x32, REG_Y_AXIS_L, I2C_MEMADD_SIZE_8BIT, &accelDataY[0], 1, 10000);
+	  HAL_I2C_Mem_Read(&hi2c1, 0x32, REG_Y_AXIS_H, I2C_MEMADD_SIZE_8BIT, &accelDataY[1], 1, 10000);
 
 	  //CDC_Transmit_FS(testDataToSend, 12);
 
@@ -212,7 +227,6 @@ int main(void)
 
 
 
-	  //HAL_Delay(1000);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
